@@ -3,7 +3,7 @@ const BodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectID;
 
-const CONNECTION_URL = "mongodb+srv://chengcm:HG25m2gf5HXtWd63@304cem-assignment-c3cpk.azure.mongodb.net/test?retryWrites=true";
+const CONNECTION_URL = "mongodb+srv://readwrite:Ptx3SpNh233SGpj@304cem-assignment-c3cpk.azure.mongodb.net/test?retryWrites=true";
 const DATABASE_NAME = "example";
 
 var app = Express();
