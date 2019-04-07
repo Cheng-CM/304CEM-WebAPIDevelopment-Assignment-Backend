@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var User = require('./models/User');
 //import brypt
 var bcrypt = require("bcrypt");
+var ObjectId = require("mongodb").ObjectID;
 
 var app = Express();
 
@@ -19,7 +20,7 @@ var CONNECTION_URL = "mongodb+srv://readwrite:Ptx3SpNh233SGpj@304cem-assignment-
 //Get the default connection
 var db = mongoose.connection;
 
-app.post("/CreateUser", (request, response) => {
+app.post("/Register", (request, response) => {
     if (request.body.email &&
         request.body.username &&
         request.body.password &&
@@ -37,21 +38,37 @@ app.post("/CreateUser", (request, response) => {
                         new User(request.body).save(function (err) {
                             if (err) return response.send(err);
                             // saved!
-                            response.send("User saved.");
+                            response.send(200, "Successful");
                         });
                     });
-                }else{
-                    response.send("email exist.");
+                } else {
+                    response.send(403,"Email existed.");
                 }
             });
 
 
     } else {
-        response.send("Invaild Info.");
+        response.send(400,"Invaild Information.");
     }
 });
 
-app.post("/AuthUser", (request, response) => {
+app.get("/User/:id", function (request, response) {
+    User.findOne({ _id: new ObjectId(request.params.id) })
+        .exec(function (err, user) {
+            if (err) {
+                response.send(err);
+            } else if (!user) {
+                err = new Error(404,'User not found.');
+                err.status = 401;
+                response.send(err);
+            } else {
+                user.password = '';
+                response.send({id: user._id, email: user.email, username: user.username, created: user.created});
+            }
+        });
+});
+
+app.post("/Login", (request, response) => {
     if (request.body.email &&
         request.body.password
     ) {
@@ -60,20 +77,21 @@ app.post("/AuthUser", (request, response) => {
                 if (err) {
                     response.send(err);
                 } else if (!user) {
-                    var err = new Error('User not found.');
+                    err = new Error(404,'User not found.');
                     err.status = 401;
                     response.send(err);
+                } else {
+                    bcrypt.compare(request.body.password, user.password, function (err, result) {
+                        if (result === true) {
+                            response.send("Successful");
+                        } else {
+                            response.send(404,"Wrong Password");
+                        }
+                    });
                 }
-                bcrypt.compare(request.body.password, user.password, function (err, result) {
-                    if (result === true) {
-                        response.send("Passed");
-                    } else {
-                        response.send("Wrong Password");
-                    }
-                });
             });
     } else {
-        response.send("Invaild Info.");
+        response.send(400,"Invaild Information.");
     }
 });
 
@@ -85,6 +103,6 @@ app.listen(3000, () => {
     mongoose.connect(CONNECTION_URL, { useNewUrlParser: true }, (error) => {
         if (error) {
             throw error;
-        }
+        } else { console.log("http://localhost:3000/"); }
     });
 });

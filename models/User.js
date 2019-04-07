@@ -12,5 +12,5 @@ var UserSchema = new Schema({
 });
 
 //Export function to create "User" model class
-var User = mongoose.model('User', UserSchema)
+var User = mongoose.model('User', UserSchema);
 module.exports = User;
