@@ -1,26 +1,44 @@
 //import express
 var Express = require("express");
 var BodyParser = require("body-parser");
+
 //import mongoose
 var mongoose = require('mongoose');
-//import Models
-var User = require('./models/User');
+
 //import brypt
 var bcrypt = require("bcrypt");
 var ObjectId = require("mongodb").ObjectID;
 
-var app = Express();
+//import models
+var User = require('./models/User');
+var Item = require('./models/item');
 
-app.use(BodyParser.json());
-app.use(BodyParser.urlencoded({
-    extended: true
-}));
+//import file upload
+var multer = require('multer');
+var fs = require('fs');
+
+var app = Express();
 
 //Set up default mongoose connection
 var CONNECTION_URL = "mongodb+srv://readwrite:Ptx3SpNh233SGpj@304cem-assignment-c3cpk.azure.mongodb.net/example?retryWrites=true";
 
 //Get the default connection
 var db = mongoose.connection;
+
+//Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+var upload = multer({
+    dest:"./upload",
+    rename: function (fieldname, filename) {
+        return filename;
+    }
+});
+
+app.use(BodyParser.json());
+app.use(BodyParser.urlencoded({
+    extended: true
+}));
 
 app.post("/Register", function (request, response) {
     if (request.body.email &&
@@ -39,20 +57,21 @@ app.post("/Register", function (request, response) {
                     bcrypt.hash(request.body.password, 10, function (err, hash) {
                         if (err) return response.send(err);
                         request.body.password = hash;
+                        request.body.created = Date.now();
                         new User(request.body).save(function (err) {
                             if (err) return response.send(err);
                             // saved!
-                            response.send(200, "Successful");
+                            response.send("Successful");
                         });
                     });
                 } else {
-                    response.send(401, "Email existed.");
+                    response.send("Email existed.");
                 }
             });
 
 
     } else {
-        response.send(400, "Invaild Information.");
+        response.send("Invaild Information.");
     }
 });
 
@@ -75,7 +94,7 @@ app.post("/Login", function (request, response) {
                         if (result === true) {
                             response.send("Successful");
                         } else {
-                            response.send(401, "Wrong Password");
+                            response.send("Wrong Password");
                         }
                     });
                 }
@@ -118,14 +137,82 @@ app.get("/UserByName/:name", function (request, response) {
             err = new Error('User not found.');
             err.status = 401;
             response.send(err);
-        } else {            
+        } else {
             response.send(user);
         }
     });
 });
 
-//Bind connection to error event (to get notification of connection errors)
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+//Item CRUD
+app.post('/Item/Create', upload.single("img"), function (req, res) {
+    if (req.body.name &&
+        req.body.description &&
+        req.body.createdBy &&
+        req.file.path
+    ) {
+        var newItem = new Item();
+        newItem.img.data = fs.readFileSync(req.file.path);
+        newItem.img.contentType = 'image/png';
+        newItem.createdBy = ObjectId(req.body.createdBy);
+        newItem.created = Date.now();
+        newItem.name = req.body.name;
+        newItem.description = req.body.description;
+        newItem.save();
+        res.status(200).send("Successful.");
+    } else {
+        res.status(401).send("Invaild information.");
+    }
+});
+
+app.get("/ItemById/:id", function (request, response) {
+    Item.findOne({
+        _id: new ObjectId(request.params.id)
+    })
+        .exec(function (err, item) {
+            if (err) {
+                response.send(err);
+            } else if (!item) {
+                err = new Error('Item not found.');
+                response.status(401).send(err);
+            } else {
+                response.send(item);
+            }
+        });
+});
+
+app.put("/ItemById/:id", upload.single("img"), function (request, response) {
+    if (
+        request.body.name &&
+        request.body.description
+    ) {
+        Item.updateOne({
+            _id: new ObjectId(request.params.id)
+        }, { name: request.body.name, description: request.body.description }
+        ).exec(function (err, item) {
+            if (err) {
+                response.send(err);
+            } else if (!item) {
+                err = new Error('Item not found.');
+                response.status(401).send(err);
+            } else {
+                response.send(item);
+            }
+        });
+    }
+});
+
+app.delete("/ItemById/:id", function (request, response) {
+    Item.deleteOne({
+        _id: new ObjectId(request.params.id)
+    })
+        .exec(function (err) {
+            if (err) {
+                response.send(err);
+            } else {
+                response.send("Successful.");
+            }
+        });
+});
 
 app.listen(3000, function () {
     mongoose.connect(CONNECTION_URL, {
