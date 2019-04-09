@@ -8,9 +8,11 @@ var ItemSchema = new Schema({
     name: String,
     description: String,
     createdBy: Schema.Types.ObjectId,
-    created: { type: Date, default: Date.now() }
+    created: { type: Date, default: Date.now() },
+    img: { data: Buffer, contentType: String }
+
 });
 
 //Export function to create "User" model class
-var User = mongoose.model('Item', ItemSchema);
+var Item = mongoose.model('Item', ItemSchema);
 module.exports = Item;
