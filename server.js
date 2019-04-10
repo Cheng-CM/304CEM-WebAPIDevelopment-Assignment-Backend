@@ -51,27 +51,19 @@ app.post("/Register", function (request, response) {
     ) {
         User.findOne({
             email: request.body.email
-        })
-            .exec(function (err, user) {
-                if (err) {
-                    response.send(err);
-                } else if (!user) {
-                    bcrypt.hash(request.body.password, 10, function (err, hash) {
-                        if (err) return response.send(err);
-                        request.body.password = hash;
-                        request.body.created = Date.now();
-                        new User(request.body).save(function (err) {
-                            if (err) return response.send(err);
-                            // saved!
-                            response.send("Successful");
-                        });
-                    });
-                } else {
-                    response.send("Email existed.");
-                }
-            });
-
-
+        }).exec(function (err, user) {
+            if (err) {
+                response.send(err);
+            } else if (!user) {
+                request.body.created = Date.now();
+                new User(request.body).save(function (err) {
+                    if (err) return console.log(err);
+                    response.send("User Created");
+                });
+            } else {
+                response.send("Email existed.");
+            }
+        });
     } else {
         response.send("Invaild Information.");
     }
@@ -83,40 +75,32 @@ app.post("/Login", function (request, response) {
     ) {
         User.findOne({
             email: request.body.email
-        })
-            .exec(function (err, user) {
-                if (err) {
-                    response.send(err);
-                } else if (!user) {
-                    err = new Error('User not found.');
-                    err.status = 401;
-                    response.send(err);
-                } else {
-                    bcrypt.compare(request.body.password, user.password, function (err, result) {
-                        if (result === true) {
-                            response.send("Successful");
-                        } else {
-                            response.send("Wrong Password");
-                        }
-                    });
-                }
-            });
+        }).exec(function (err, user) {
+            if (err) {
+                response.send(err);
+            } else if (!user) {
+                err = new Error('User not found.');
+                response.status(401).send(err);
+            } else {
+                bcrypt.compare(request.body.password, user.password, function (err, result) {
+                    if (result === true) {
+                        response.send("Successful");
+                    } else {
+                        response.send("Wrong Password");
+                    }
+                });
+            }
+        });
     } else {
         response.send(400, "Invaild Information.");
     }
 });
 
-app.get("/UserById/:id", function (request, response) {
-    User.findOne({
-        _id: new ObjectId(request.params.id)
-    }, { password: 0 })
+app.get("/User/Id/:id", function (request, response) {
+    User.findOne({ _id: new ObjectId(request.params.id) }, { password: 0 })
         .exec(function (err, user) {
-            if (err) {
-                response.send(err);
-            } else if (!user) {
-                err = new Error('User not found.');
-                err.status = 401;
-                response.send(err);
+            if (err) { response.send(err); } else if (!user) {
+                response.status(401).send('User not found.');
             } else {
                 response.send(
                     user
@@ -125,7 +109,7 @@ app.get("/UserById/:id", function (request, response) {
         });
 });
 
-app.get("/UserByName/:name", function (request, response) {
+app.get("/User/Name/:name", function (request, response) {
     User.find({
         username: request.params.name
     }, { password: 0 }).exec(function (err, user) {
@@ -142,7 +126,7 @@ app.get("/UserByName/:name", function (request, response) {
 });
 
 //Item CRUD
-app.post('/Item/Create', upload.single("img"), function (request, response) {
+app.post('/Item', upload.single("img"), function (request, response) {
     if (request.body.name &&
         request.body.description &&
         request.body.createdBy &&
@@ -162,7 +146,7 @@ app.post('/Item/Create', upload.single("img"), function (request, response) {
     }
 });
 
-app.get("/ItemById/:id", function (request, response) {
+app.get("/Item/Id/:id", function (request, response) {
     Item.findOne({
         _id: new ObjectId(request.params.id)
     })
@@ -178,7 +162,7 @@ app.get("/ItemById/:id", function (request, response) {
         });
 });
 
-app.get("/AllItem", function (request, response) {
+app.get("/Item/All", function (request, response) {
     Item.find({}, {
         img: 0
     })
@@ -194,7 +178,7 @@ app.get("/AllItem", function (request, response) {
         });
 });
 
-app.put("/ItemById/:id", upload.single("img"), function (request, response) {
+app.put("/Item/Id/:id", upload.single("img"), function (request, response) {
     if (
         request.body.name &&
         request.body.description
@@ -215,21 +199,20 @@ app.put("/ItemById/:id", upload.single("img"), function (request, response) {
     }
 });
 
-app.delete("/ItemById/:id", function (request, response) {
+app.delete("/Item/Id/:id", function (request, response) {
     Item.deleteOne({
         _id: new ObjectId(request.params.id)
-    })
-        .exec(function (err) {
-            if (err) {
-                response.send(err);
-            } else {
-                response.send("Successful.");
-            }
-        });
+    }).exec(function (err) {
+        if (err) {
+            response.send(err);
+        } else {
+            response.send("Successful.");
+        }
+    });
 });
 
 //Raffle CRUD
-app.post('/Raffle/Create', function (request, response) {
+app.post('/Raffle', function (request, response) {
     if (request.body.name &&
         request.body.description &&
         request.body.createdBy &&
@@ -250,7 +233,7 @@ app.post('/Raffle/Create', function (request, response) {
     // response.send(request.body);
 });
 
-app.get("/AllRaffle", function (request, response) {
+app.get("/Raffle/All", function (request, response) {
     Raffle.find()
         .exec(function (err, raffle) {
             if (err) {
@@ -264,7 +247,7 @@ app.get("/AllRaffle", function (request, response) {
         });
 });
 
-app.get("/RaffleById/:id", function (request, response) {
+app.get("/Raffle/Id/:id", function (request, response) {
     Raffle.findOne({
         _id: new ObjectId(request.params.id)
     })
@@ -280,7 +263,7 @@ app.get("/RaffleById/:id", function (request, response) {
         });
 });
 
-app.put("/RaffleEdit/:id", function (request, response) {
+app.put("/Raffle/Id/:id", function (request, response) {
     if (
         request.body.name &&
         request.body.description
@@ -301,13 +284,13 @@ app.put("/RaffleEdit/:id", function (request, response) {
     }
 });
 
-app.put("/RaffleActive/:id", function (request, response) {
+app.put("/Raffle/Id/:id/status/:active", function (request, response) {
     if (
-        request.body.active
+        request.params.active
     ) {
         Raffle.updateOne({
             _id: new ObjectId(request.params.id)
-        }, { active: request.body.active }
+        }, { active: request.params.active }
         ).exec(function (err, raffle) {
             if (err) {
                 response.send(err);
@@ -321,32 +304,32 @@ app.put("/RaffleActive/:id", function (request, response) {
     }
 });
 
-app.put("/Join/:id", function (request, response) {
+app.put("/Join/:id/u/:user", function (request, response) {
     if (
-        request.body.user
+        request.params.user
     ) {
         Raffle.updateOne({
             _id: new ObjectId(request.params.id)
         }, {
-            "$push": {
-                "joined": ObjectId(request.body.user)
-
-            }
+                "$push": {
+                    "joined": ObjectId(request.param.user)
+                }
             }
         ).exec(function (err, raffle) {
             if (err) {
-                response.send(err);
+                console.log(err);
             } else if (!raffle) {
-                err = new Error('raffle not found.');
-                response.status(401).send(err);
+                response.status(401).send('raffle not found.');
             } else {
                 response.send(raffle);
             }
         });
+    } else {
+        response.status(401).send("Invaild information.");
     }
 });
 
-app.delete("/RaffleById/:id", function (request, response) {
+app.delete("/Raffle/Id/:id", function (request, response) {
     Raffle.deleteOne({
         _id: new ObjectId(request.params.id)
     })
