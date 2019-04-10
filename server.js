@@ -58,10 +58,10 @@ app.post("/Register", function (request, response) {
                 request.body.created = Date.now();
                 new User(request.body).save(function (err) {
                     if (err) return console.log(err);
-                    response.send("User Created");
+                    response.status(201).send("User Created");
                 });
             } else {
-                response.send("Email existed.");
+                response.status(400).send("Email existed.");
             }
         });
     } else {
@@ -86,7 +86,7 @@ app.post("/Login", function (request, response) {
                     if (result === true) {
                         response.send("Successful");
                     } else {
-                        response.send("Wrong Password");
+                        response.status(400).send("Wrong Password");
                     }
                 });
             }
@@ -100,7 +100,7 @@ app.get("/User/Id/:id", function (request, response) {
     User.findOne({ _id: new ObjectId(request.params.id) }, { password: 0 })
         .exec(function (err, user) {
             if (err) { response.send(err); } else if (!user) {
-                response.status(401).send('User not found.');
+                response.status(404).send('User not found.');
             } else {
                 response.send(
                     user
@@ -155,7 +155,7 @@ app.get("/Item/Id/:id", function (request, response) {
                 response.send(err);
             } else if (!item) {
                 err = new Error('Item not found.');
-                response.status(401).send(err);
+                response.status(404).send(err);
             } else {
                 response.send(item);
             }
@@ -226,7 +226,7 @@ app.post('/Raffle', function (request, response) {
         newRaffle.created = Date.now();
         newRaffle.active = true;
         newRaffle.save();
-        response.status(200).send("Successful.");
+        response.status(201).send("Successful.");
     } else {
         response.status(401).send("Invaild information.");
     }
@@ -256,7 +256,7 @@ app.get("/Raffle/Id/:id", function (request, response) {
                 response.send(err);
             } else if (!raffle) {
                 err = new Error('raffle not found.');
-                response.status(401).send(err);
+                response.status(404).send(err);
             } else {
                 response.send(raffle);
             }
