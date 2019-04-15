@@ -17,7 +17,7 @@ describe('Items:', function () {
     });
 
     it('GET item with correct id should return 200', function () {
-        return frisby.get('http://localhost:3000/Item/id/5cac4615d049bc363ca46e77')
+        return frisby.get('http://localhost:3000/Item/id/5cac45f2a021f0307cda6cd3')
             .expect('status', 200);
     });
 
