@@ -13,6 +13,6 @@ var ItemSchema = new Schema({
 
 });
 
-//Export function to create "User" model class
-var Item = mongoose.model('Item', ItemSchema);
-module.exports = Item;
+//Export function to create "Item" model class
+var item = mongoose.model('Item', ItemSchema);
+module.exports = item;
