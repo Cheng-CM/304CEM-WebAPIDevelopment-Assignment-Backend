@@ -1,7 +1,7 @@
 //Require Mongoose
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
-
+var jwt = require('jsonwebtoken');
 //Define a schema
 var Schema = mongoose.Schema;
 
