@@ -49,6 +49,7 @@ function validateUser(req, res, next) {
             next();
         }
     });
+}
 //Server
 app.listen(3000, function () {
     mongoose.connect(CONNECTION_URL, {
