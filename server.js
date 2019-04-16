@@ -263,6 +263,46 @@ app.get("/Raffle/Id/:id", function (request, response) {
         });
 });
 
+app.get("/Raffle/CreatedBy/:id", function (request, response) {
+    Raffle.find({
+        createdBy: new ObjectId(request.params.id)
+    })
+        .exec(function (err, raffle) {
+            if (err) {
+                response.send(err);
+            } else if (!raffle) {
+                err = new Error('raffle not found.');
+                response.status(404).send(err);
+            } else {
+                if (raffle.length > 0) {
+                    response.send(raffle);
+                } else {
+                    response.status(404).send('raffle not found.');
+                }
+            }
+        });
+});
+
+app.get("/Raffle/joined/:id", function (request, response) {
+    Raffle.find({
+        joined: new ObjectId(request.params.id)
+    })
+        .exec(function (err, raffle) {
+            if (err) {
+                console.log(err);
+                response.send(err);
+            } else if (!raffle) {
+                response.status(404).send('raffle not found.');
+            } else {
+                if (raffle.length > 0) {
+                    response.send(raffle);
+                } else {
+                    response.status(404).send('raffle not found.');
+                }
+            }
+        });
+});
+
 app.put("/Raffle/Id/:id", function (request, response) {
     if (
         request.body.name &&
