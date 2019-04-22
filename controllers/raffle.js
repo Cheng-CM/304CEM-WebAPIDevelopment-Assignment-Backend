@@ -12,7 +12,7 @@ module.exports = {
             newRaffle.name = request.body.name;
             newRaffle.description = request.body.description;
             newRaffle.createdBy = ObjectId(request.body.createdBy);
-            newRaffle.item = ObjectId(request.body.createdBy);
+            newRaffle.item = ObjectId(request.body.item);
             newRaffle.created = Date.now();
             newRaffle.active = true;
             newRaffle.save();
@@ -36,8 +36,23 @@ module.exports = {
     },
     findById: function (request, response, next) {
         Raffle.findOne({
-            _id: new ObjectId(request.params.id)
-        })
+                _id: new ObjectId(request.params.id)
+            })
+            .exec(function (err, raffle) {
+                if (err) {
+                    response.send(err);
+                } else if (!raffle) {
+                    err = new Error('raffle not found.');
+                    response.status(404).send(err);
+                } else {
+                    response.send(raffle);
+                }
+            });
+    },
+    findByItem: function (request, response, next) {
+        Raffle.find({
+                item: new ObjectId(request.params.id)
+            })
             .exec(function (err, raffle) {
                 if (err) {
                     response.send(err);
@@ -52,23 +67,26 @@ module.exports = {
     updatebyId: function (request, response, next) {
         if (
             request.body.name &&
-            request.body.description
+            request.body.description &&
+            request.body.item
         ) {
             Raffle.updateOne({
                 _id: new ObjectId(request.params.id)
             }, {
-                    name: request.body.name,
-                    description: request.body.description
-                }).exec(function (err, raffle) {
-                    if (err) {
-                        response.send(err);
-                    } else if (!raffle) {
-                        err = new Error('raffle not found.');
-                        response.status(401).send(err);
-                    } else {
-                        response.send(raffle);
-                    }
-                });
+                name: request.body.name,
+                description: request.body.description,
+                item: request.body.item
+
+            }).exec(function (err, raffle) {
+                if (err) {
+                    response.send(err);
+                } else if (!raffle) {
+                    err = new Error('raffle not found.');
+                    response.status(401).send(err);
+                } else {
+                    response.send(raffle);
+                }
+            });
         }
     },
     updateStatus: function (request, response, next) {
@@ -78,20 +96,22 @@ module.exports = {
             Raffle.updateOne({
                 _id: new ObjectId(request.params.id)
             }, {
-                    active: request.params.active
-                }).exec(function (err, raffle) {
-                    if (err) {
-                        response.send(err);
-                    } else if (!raffle) {
-                        err = new Error('raffle not found.');
-                        response.status(401).send(err);
-                    } else {
-                        response.send(raffle);
-                    }
-                });
+                active: request.params.active
+            }).exec(function (err, raffle) {
+                if (err) {
+                    response.send(err);
+                } else if (!raffle) {
+                    err = new Error('raffle not found.');
+                    response.status(401).send(err);
+                } else {
+                    response.send(raffle);
+                }
+            });
         }
     },
     join: function (request, response, next) {
+        console.log(request);
+        
         if (
             request.params.user
         ) {
@@ -101,26 +121,26 @@ module.exports = {
                     $ne: request.params.user
                 }
             }, {
-                    "$push": {
-                        "joined": request.params.user
-                    }
-                }).exec(function (err, raffle) {
-                    if (err) {
-                        console.log(err);
-                    } else if (!raffle) {
-                        response.status(401).send('raffle not found.');
-                    } else {
-                        response.send(raffle);
-                    }
-                });
+                "$push": {
+                    "joined": request.params.user
+                }
+            }).exec(function (err, raffle) {
+                if (err) {
+                    console.log(err);
+                } else if (!raffle) {
+                    response.status(401).send('raffle not found.');
+                } else {
+                    response.send(raffle);
+                }
+            });
         } else {
             response.status(401).send("Invaild information.");
         }
     },
     deletebyId: function (request, response, next) {
         Raffle.deleteOne({
-            _id: new ObjectId(request.params.id)
-        })
+                _id: new ObjectId(request.params.id)
+            })
             .exec(function (err) {
                 if (err) {
                     response.send(err);
@@ -128,30 +148,49 @@ module.exports = {
                     response.send("Successful.");
                 }
             });
-    }, 
+    },
     findCreated: function (request, response, next) {
-            Raffle.find({
+        Raffle.find({
                 createdBy: new ObjectId(request.params.id)
             })
-                .exec(function (err, raffle) {
-                    if (err) {
-                        response.send(err);
-                    } else if (!raffle) {
-                        err = new Error('raffle not found.');
-                        response.status(404).send(err);
+            .exec(function (err, raffle) {
+                if (err) {
+                    response.send(err);
+                } else if (!raffle) {
+                    err = new Error('raffle not found.');
+                    response.status(404).send(err);
+                } else {
+                    if (raffle.length > 0) {
+                        response.send(raffle);
                     } else {
-                        if (raffle.length > 0) {
-                            response.send(raffle);
-                        } else {
-                            response.status(404).send('raffle not found.');
-                        }
+                        response.status(404).send('raffle not found.');
                     }
-                });
-        }, 
+                }
+            });
+    },
     findJoined: function (request, response) {
         Raffle.find({
-            joined: new ObjectId(request.params.id)
-        })
+                joined: new ObjectId(request.params.id)
+            })
+            .exec(function (err, raffle) {
+                if (err) {
+                    console.log(err);
+                    response.send(err);
+                } else if (!raffle) {
+                    response.status(404).send('raffle not found.');
+                } else {
+                    if (raffle.length > 0) {
+                        response.send(raffle);
+                    } else {
+                        response.status(404).send('raffle not found.');
+                    }
+                }
+            });
+    },
+    findActive: function (request, response) {
+        Raffle.find({
+                active: true
+            })
             .exec(function (err, raffle) {
                 if (err) {
                     console.log(err);

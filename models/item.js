@@ -9,7 +9,7 @@ var ItemSchema = new Schema({
     description: String,
     createdBy: Schema.Types.ObjectId,
     created: { type: Date, default: Date.now() },
-    img: { data: Buffer, contentType: String }
+    img: String
 
 });
 

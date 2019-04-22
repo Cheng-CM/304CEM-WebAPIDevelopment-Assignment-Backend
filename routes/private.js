@@ -11,12 +11,13 @@ var upload = multer({
         return filename;
     }
 });
+
 //Item CRUD
-router.post('/Item', upload.single("img"), ItemController.create);
+router.post('/Item', ItemController.create);
 router.put("/Item/Id/:id", upload.single("img"), ItemController.updateById);
 router.delete("/Item/Id/:id", ItemController.deleteById);
 //Raffle CRUD
-router.get("/Raffle/CreatedBy/:id", RaffleController.findCreated);
+
 router.get("/Raffle/joined/:id",RaffleController.findJoined);
 router.post('/Raffle', RaffleController.create);
 router.put("/Raffle/Id/:id", RaffleController.updatebyId);

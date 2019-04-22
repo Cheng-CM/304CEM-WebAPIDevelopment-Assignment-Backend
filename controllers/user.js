@@ -37,33 +37,44 @@ module.exports = {
                 email: request.body.email
             }).exec(function (err, userInfo) {
                 if (err) {
-                    next(err);
+                    response.json({
+                        status: "error",
+                        message: "Invalid email/password."
+                    });
                 } else {
-                    if (bcrypt.compareSync(request.body.password, userInfo.password)) {
-                        var token = jwt.sign({
-                            id: userInfo._id
-                        }, request.app.get('secretKey'), {
-                            expiresIn: '1h'
-                        });
-                        response.json({
-                            status: "success",
-                            message: "user found.",
-                            data: {
-                                user: userInfo,
-                                token: token
-                            }
-                        });
+                    if (userInfo) {
+                        if (bcrypt.compareSync(request.body.password, userInfo.password)) {
+                            var token = jwt.sign({
+                                id: userInfo._id
+                            }, request.app.get('secretKey'), {
+                                expiresIn: '7d'
+                            });
+                            userid = userInfo._id;
+                            response.cookie(
+                                userid, token, {
+                                    expires: new Date(Date.now() + 31556926000),
+                                    httpOnly: true
+                                }
+                            );
+                            response.json({
+                                status: "success",
+                                message: "user found.",
+                                data: {
+                                    token: token,
+                                    User: userid
+                                }
+                            });
+                        }
                     } else {
                         response.json({
                             status: "error",
-                            message: "Invalid email/password.",
-                            data: null
+                            message: "Invalid email/password."
                         });
                     }
                 }
             });
         } else {
-            response.send(400, "Invaild Information.");
+            response.status(400).send("Invaild Information.");
         }
     },
     findById: function (request, response, next) {
@@ -100,5 +111,13 @@ module.exports = {
                 response.send(user);
             }
         });
+    },
+    getCookies: function (request, response, next) {
+        console.log('Cookies: ', request.cookies);
+        response.send(request.cookies);
+    },
+    destoryCookie: function (request, response, next) {
+        response.clearCookie(request.body.id);
+        response.send(request.cookies);
     }
-}
+};

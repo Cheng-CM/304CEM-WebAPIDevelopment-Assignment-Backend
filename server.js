@@ -7,10 +7,11 @@ var mongoose = require('mongoose');
 
 //import jwt
 var jwt = require('jsonwebtoken');
-
+var cors = require('cors');
 //import controllers
 var public = require('./routes/public');
 var private = require('./routes/private');
+var cookieParser = require('cookie-parser')
 
 var app = Express();
 
@@ -23,7 +24,8 @@ var db = mongoose.connection;
 //Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-
+app.use(cors());
+app.use(cookieParser())
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({
     extended: true
