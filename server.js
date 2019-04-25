@@ -37,7 +37,9 @@ app.set('secretKey', 'nodeRestApi');
 
 app.use('/public', public);
 app.use('/private', validateUser, private);
-
+app.get('/', function(req, res){
+    res.json({"Page" : "REST API with node.js"});
+    });
 function validateUser(req, res, next) {
     jwt.verify(req.headers['x-access-token'], req.app.get('secretKey'), function (err, decoded) {
         if (err) {
