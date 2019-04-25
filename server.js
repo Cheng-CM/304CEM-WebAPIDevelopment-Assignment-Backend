@@ -1,7 +1,7 @@
 //import express
 var Express = require("express");
 var BodyParser = require("body-parser");
-
+var logger = require('morgan');
 //import mongoose
 var mongoose = require('mongoose');
 
@@ -11,10 +11,11 @@ var cors = require('cors');
 //import controllers
 var public = require('./routes/public');
 var private = require('./routes/private');
-var cookieParser = require('cookie-parser')
+var cookieParser = require('cookie-parser');
 
 var app = Express();
-
+//logger
+app.use(logger('dev'));
 //Set up default mongoose connection
 var CONNECTION_URL = "mongodb+srv://readwrite:Ptx3SpNh233SGpj@304cem-assignment-c3cpk.azure.mongodb.net/example?retryWrites=true";
 
@@ -25,7 +26,7 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 app.use(cors());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({
     extended: true
