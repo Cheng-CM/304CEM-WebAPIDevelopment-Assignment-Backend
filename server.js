@@ -56,7 +56,7 @@ function validateUser(req, res, next) {
     });
 }
 //Server
-app.listen(3000, function () {
+app.listen(process.env.PORT || 3000, function () {
     mongoose.connect(CONNECTION_URL, {
         useNewUrlParser: true
     }, function (error) {
