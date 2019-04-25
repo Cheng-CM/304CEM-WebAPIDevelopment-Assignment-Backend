@@ -1,4 +1,4 @@
-var itemModel = require('../models/Item');
+var itemModel = require('../models/item');
 var raffleModel = require('../models/raffle');
 var ObjectId = require("mongodb").ObjectID;
 var fs = require('fs');
